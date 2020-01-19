@@ -60,7 +60,24 @@ export default {
 			addFormVisible: false
 		}
 	},
+	inject:['reload'],
+	mounted() {
+		this.getGonggao();
+		this.getJindu()
+	},
 	methods: {
+		handleDel(row) {
+			var obj = {
+				ggId: row.ggId
+			}
+			delGg(obj).then((res) => {
+				this.$message({
+					message: res.data.msg,
+					//type: 'success'
+				});
+				this.getGonggao()
+			})
+		},
 		getGonggao() {
 			var user = sessionStorage.getItem('user');
 			user = JSON.parse(user)
@@ -87,29 +104,14 @@ export default {
 			}
 			addGg(obj).then((res) => {
 				this.$message({
-					message: res.msg,
-					type: 'success'
-				});
-			})
-			this.addFormVisible = false
-			this.getGonggao()
-		},
-		handleDel(row) {
-			var obj = {
-				ggId: row.ggId
-			}
-			delGg(obj).then((res) => {
-				this.$message({
 					message: res.data.msg,
 					type: 'success'
 				});
+				this.reload();
 			})
+			this.addFormVisible = false
 			this.getGonggao()
 		}
-	},
-	mounted() {
-		this.getGonggao();
-		this.getJindu()
 	}
 }
 </script>

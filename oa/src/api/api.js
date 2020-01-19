@@ -9,9 +9,13 @@ export const requestLogin = params => { return axios.post(`${base}/user/login`, 
 //公告
 export const getGg = params => { return axios.post(`${base}/gsxx/gsgg`, params).then(res => res.data); };
 //新增公告
-export const addGg = params => { return axios.post(`${base}/gsxx/addGg`, params).then(res => res.data); };
+//export const addGg = params => { return axios.post(`${base}/gsxx/addGg`, params).then(res => res.data); };
+export const addGg = params => { return axios.get(`${base}/gsxx/addGg`, { params: params }); };
+
 //删除公告
-export const delGg = params => { return axios.post(`${base}/gsxx/delGg`, params).then(res => res.data); };
+//export const delGg = params => { return axios.post(`${base}/gsxx/delGg`, params).then(res => res.data); };
+export const delGg = params => { return axios.get(`${base}/gsxx/delGg`, { params: params }); };
+
 //项目进度
 export const getJd = params => { return axios.post(`${base}/gsxx/xmjd`, params).then(res => res.data); };
 //我的任务
