@@ -246,8 +246,11 @@
 			},
 			//显示新增界面
 			handleAdd: function () {
+				var user = sessionStorage.getItem('user');
+				user = JSON.parse(user)
 				this.addFormVisible = true;
 				this.addForm = {
+					fbUserId: user.userId,
 					jsUserId: '',
 					name: '',
 					rwmc: '',
@@ -293,7 +296,7 @@
 								this.addLoading = false;
 								//NProgress.done();
 								this.$message({
-									message: '提交成功',
+									message: res.data.msg,
 									type: 'success'
 								});
 								this.$refs['addForm'].resetFields();
@@ -309,7 +312,7 @@
 			},
 			//批量删除
 			batchRemove: function () {
-				var ids = this.sels.map(item => item.id).toString();
+				var ids = this.sels.map(item => item.rwId).toString();
 				this.$confirm('确认删除选中记录吗？', '提示', {
 					type: 'warning'
 				}).then(() => {
