@@ -59,6 +59,7 @@ export default {
 			}
 		}
 	},
+	inject:['reload'],
 	mounted() {
 		this.getData()
 	},
@@ -91,6 +92,7 @@ export default {
           message: res.data.msg,
           type: 'success'
         });
+				this.reload();
 			})
 			this.dialogVisible = false
 			this.getData()
