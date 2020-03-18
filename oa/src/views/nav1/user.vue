@@ -1,7 +1,7 @@
 <template>
 	<section>
 		<!--工具条-->
-		<!-- <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
 				<el-form-item>
 					<el-input v-model="filters.name" size="small" placeholder="会议室编号"></el-input>
@@ -9,8 +9,11 @@
 				<el-form-item>
 					<el-button type="primary" size="small" v-on:click="getTableData">查询</el-button>
 				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" size="small" v-if="ifAdmin" @click="handleAdd">新增</el-button>
+				</el-form-item>
 			</el-form>
-		</el-col> -->
+		</el-col>
 
 		<!--列表-->
 		<template>
@@ -23,10 +26,16 @@
 				</el-table-column>
 				<el-table-column prop="bz" label="备注" min-width="180">
 				</el-table-column>
-				<el-table-column label="操作" width="150" v-if="ifAdmin">
+				<el-table-column prop="useTime" label="使用时间" min-width="150">
+				</el-table-column>
+				<el-table-column prop="status" label="审核状态" min-width="150">
+				</el-table-column>
+				<el-table-column label="操作" width="200" >
 					<template scope="scope">
 						<el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
-						<el-button size="small" :disabled="buttonDis(scope.row)" @click="handleNotice(scope.row)">通知</el-button>
+<!--						<el-button size="small" :disabled="buttonDis(scope.row)" @click="handleNotice(scope.row)">通知</el-button>-->
+						<el-button type="success" size="small" v-if="ifAdmin" :disabled="buttonAble(scope.row)" @click="handleAgree(scope.row,1)">同意</el-button>
+						<el-button type="danger" size="small"  v-if="ifAdmin" :disabled="buttonAble(scope.row)" @click="handleAgree(scope.row,0)">拒绝</el-button>
 					</template>
 			</el-table-column>
 			</el-table>
@@ -44,9 +53,9 @@
 						<el-option label="空闲" value="空闲"></el-option>
 					</el-select>
 				</el-form-item>
-				<!-- <el-form-item label="使用时间">
-					<el-date-picker type="date" placeholder="选择日期" v-model="editForm.birth"></el-date-picker>
-				</el-form-item> -->
+				<el-form-item label="使用时间">
+					<el-date-picker type="date" placeholder="选择日期" v-model="editForm.useTime"></el-date-picker>
+				</el-form-item>
 				<el-form-item label="备注" prop="bz">
 					<el-input type="textarea" v-model="editForm.bz"></el-input>
 				</el-form-item>
@@ -87,11 +96,23 @@
 				<el-button type="primary" size="small" @click.native="noticeSubmit" :loading="editLoading">提交</el-button>
 			</div>
 		</el-dialog>
+
+		<el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
+			<el-form :model="addForm" label-width="100px"  ref="addForm">
+				<el-form-item label="会议室编号">
+					<el-input v-model="addForm.hysbh"></el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="addFormVisible = false">取消</el-button>
+				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+			</div>
+		</el-dialog>
 	</section>
 </template>
 <script>
 	import util from '../../common/js/util'
-	import { getUserList,getHys,editHys,sendMessage } from '../../api/api';
+	import { getUserList,getHys,editHys,sendMessage,agreeMeeting,addMeeting } from '../../api/api';
 	export default {
 		data() {
 			return {
@@ -109,13 +130,19 @@
 				editForm: {
 					hysbh: '',
 					hyszt: '',
-					// birth: '',
+					useTime: '',
 					bz: ''
 				},
 				noticeForm: {
 					hysbh: '',
 					time: '',
 					userId: [],
+				},
+				addFormVisible: false,//新增界面是否显示
+				addLoading: false,
+				//新增界面数据
+				addForm: {
+					hysbh: ''
 				}
 			}
 		},
@@ -135,14 +162,12 @@
 			},
 			//获取会议室列表
 			getTableData: function () {
-				// let obj = {
-				// 	hysbh: this.search.hysbh
-				// };
+				let para = {
+					hysbh: this.filters.name
+				};
 				this.loading = true;
-				getHys().then((res) => {
-					console.log(res)
+				getHys(para).then((res) => {
 					this.users = res.data;
-					console.log(this.users,'user')
 					this.loading = false;
 				});
 			},
@@ -154,6 +179,61 @@
 				}else{
 					return true
 				}
+			},
+			//显示新增界面
+			handleAdd: function () {
+				this.addFormVisible = true;
+				this.addForm = {
+					hysbh: '',
+					hyszt: '空闲'
+				};
+			},
+			addSubmit: function () {
+				this.$refs.addForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+							this.addLoading = true;
+							let para = Object.assign({}, this.addForm);
+							addMeeting(para).then((res) => {
+								this.addLoading = false;
+								this.$message({
+									message: res.data.msg,
+									type: 'success'
+								});
+								this.$refs['addForm'].resetFields();
+								this.addFormVisible = false;
+								this.getTableData();
+							});
+						});
+					}
+				});
+			},
+			buttonAble(row) {
+				if(row.status=='审核中') {
+					return false
+				} else {
+					return true
+				}
+			},
+			handleAgree(row,value) {
+				if(value==1) {
+					var params = {
+						id: row.id,
+						status: '同意'
+					}
+				}else{
+					var params = {
+						id: row.id,
+						status: '拒绝'
+					}
+				}
+				agreeMeeting(params).then((res) => {
+					this.$message({
+						message: res.data.msg,
+						// type: 'success'
+					});
+					this.getTableData()
+				})
 			},
 			//编辑按钮触发事件
 			handleEdit: function (row) {
@@ -176,6 +256,8 @@
 							var obj = {
 								hysbh: this.editForm.hysbh,
 								hyszt: this.editForm.hyszt,
+								useTime: this.editForm.useTime,
+								status: '',
 								bz: this.editForm.bz
 							}
 							// this.$set(obj,'hyszt',this.editForm.hyszt)
@@ -184,6 +266,7 @@
 							if(obj.hyszt=='空闲') {
 								obj.bz = ''
 							}
+							obj.useTime = (!obj.useTime || obj.useTime == '') ? '' : util.formatDate.format(new Date(obj.useTime), 'yyyy-MM-dd');
 							editHys(obj).then((res) => {
 								this.editLoading = false;
 								this.$message({

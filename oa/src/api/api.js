@@ -57,3 +57,12 @@ export const getHys = params => { return axios.get(`${base}/user/getHysList`, { 
 export const editHys = params => { return axios.get(`${base}/user/updateHys`, { params: params }); };
 //发送参会短信
 export const sendMessage = params => { return axios.post(`${base}/user/kh`,  params); };
+
+export const agreeMeeting = params => { return axios.get(`${base}/meeting/room/agree`, { params: params }); };
+
+
+export const addMeeting = params => { return axios.get(`${base}/meeting/room/add`, { params: params }); };
+
+
+
+
