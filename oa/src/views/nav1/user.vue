@@ -308,7 +308,7 @@
 		mounted() {
 			var user = sessionStorage.getItem('user');
 			user = JSON.parse(user)
-			user.permission=='1'?this.ifAdmin = true:this.ifAdmin = false
+			user.permission=='2'?this.ifAdmin = true:this.ifAdmin = false
 			this.getTableData();
 			this.getUserData()
 		}
